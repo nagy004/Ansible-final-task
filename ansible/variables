@@ -1,0 +1,6 @@
+
+bastion_ip: "3.235.153.233"
+bastion_port: "22"
+bastion_PrivateKey_path: ./nagy-kh.pem
+bastion_user: "ubuntu"
+

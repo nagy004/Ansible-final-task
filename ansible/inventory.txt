@@ -1,0 +1,8 @@
+[bastion-machine]
+bastion ansible_host=3.235.153.233 ansible_user=ubuntu ansible_ssh_private_key_file=./nagy-kh.pem
+[private_machines]
+nexus ansible_host=10.0.3.70 ansible_user=ubuntu ansible_ssh_private_key_file=./nagy-kh.pem ansible_ssh_common_args='-o ProxyCommand="ssh bastion -W %h:%p"'
+
+sonarqube ansible_host=10.0.2.204 ansible_user=ubuntu ansible_ssh_private_key_file=./nagy-kh.pem ansible_ssh_common_args='-o ProxyCommand="ssh bastion -W %h:%p"'
+
+

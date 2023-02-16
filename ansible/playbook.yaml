@@ -1,0 +1,11 @@
+- name: Install Nexus
+  hosts: private_machines      
+  become: true                    
+  roles:
+    - roles/nexus
+
+- name: Install SonarQube
+  hosts: private_machines       
+  become: true                    
+  roles:
+    - roles/sonar-qube

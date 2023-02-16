@@ -1,0 +1,93 @@
+# tasks file for roles/sonar-qube
+- name: install required debian packages
+  apt:
+    name:
+      - zip
+      - openjdk-11-jdk
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: install required redhat packages
+  yum:
+    name:
+      - zip
+      - java-1.11.0-openjdk.x86_64
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Download sonarqube zip
+  get_url:
+    url: "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-{{ sonarqube_version }}.zip"
+    dest: ./sonarqube
+
+- name: Unzip the downloaded file
+  unarchive:
+    src: ./sonarqube
+    dest: .
+    remote_src: yes
+
+- name: mv sonarqube folder
+  copy:
+    src: ./sonarqube-{{ sonarqube_version }}/
+    dest: /opt/sonarqube/
+    remote_src: yes
+    directory_mode:
+  tags:
+    - dir_not_exist
+    - dircontent
+
+- name: Add sonar user
+  user:
+    name: sonar
+    home: /opt/sonarqube    
+
+- name: Change owner to sonar
+  file:
+    dest: /opt/sonarqube
+    owner: sonar
+    group: sonar
+    recurse: yes
+
+- name: Edit the SonarQube configuration file
+  lineinfile:
+    dest: /opt/sonarqube/conf/sonar.properties
+    line: "{{ item }}"
+  loop:
+    - "sonar.jdbc.username=sonar"
+    - "sonar.jdbc.password=my_strong_password"
+    - "sonar.jdbc.url=jdbc:postgresql://localhost:5432/sonarqube"
+
+- name: Check if default run user present
+  lineinfile:
+    path: /opt/sonarqube/bin/linux-x86-64/sonar.sh
+    regexp: '^#RUN_AS'
+    state: absent
+  check_mode: true
+  changed_when: false
+  register: check
+
+- name: Add the line if default not changed
+  lineinfile:
+    path: /opt/sonarqube/bin/linux-x86-64/sonar.sh 
+    regexp: '^#RUN_AS'
+    line: 'RUN_AS_USER=sonar'
+  when: check.found == true
+
+- name: Copy sonar.service
+  copy:
+    src: ./sonar.service
+    dest: /etc/systemd/system/
+  notify: Restart sonar
+
+- name: Edit the sysctl configuration file
+  lineinfile:
+    dest: /etc/sysctl.conf
+    line: "{{ item }}"
+  loop:
+    - "vm.max_map_count=262144"
+    - "fs.file-max=65536"
+    - "ulimit -n 65536"
+    - "ulimit -u 4096"
+
+- name: reboot the system
+  reboot:

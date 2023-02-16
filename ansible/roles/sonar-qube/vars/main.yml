@@ -1,0 +1,3 @@
+---
+# vars file for roles/sonar-qube
+sonarqube_version: 7.3

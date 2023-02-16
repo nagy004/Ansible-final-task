@@ -1,0 +1,26 @@
+
+# tasks file for roles/nexus
+- name: Install necessary packages
+  apt:
+    name:
+      - openjdk-8-jdk
+      - unzip
+    update_cache: yes
+
+- name: Download Nexus archive
+  get_url:
+    url: https://download.sonatype.com/nexus/3/latest-unix.tar.gz
+    dest: /tmp/latest-unix.tar.gz
+
+- name: Extract Nexus archive
+  unarchive:
+    src: /tmp/latest-unix.tar.gz
+    dest: /opt
+    remote_src: yes
+
+- name: Start Nexus
+  shell: |
+    cd /opt/nexus-3.47.1-01/bin/
+    ./nexus start
+  environment:
+    JAVA_HOME: /usr/lib/jvm/java-8-openjdk-amd64/ 
